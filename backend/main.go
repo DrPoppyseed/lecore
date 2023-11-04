@@ -116,10 +116,7 @@ func (ah *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("no user with email found: %v", err)
 	}
 
-	log.Printf("retrieved user: %v, %v, %v", user.Email, user.ID, user.Password)
-
-	d := doc.Data()
-	log.Printf("retrieved user: %v", d)
+	log.Printf("retrieved user data with email: %v", user.Email)
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(data.Password))
 	if err != nil {
@@ -134,7 +131,7 @@ func (ah *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("created token: %v for user with email: %v", token, data.Email)
+	log.Printf("created firebase token for user with email: %v", data.Email)
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, map[string]interface{}{
@@ -206,7 +203,7 @@ func (ah *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	_, _, err = ah.DB.Collection("users").Add(ctx, map[string]interface{}{
 		"id":       uid,
 		"email":    data.Email,
-		"password": hashedPassword,
+		"password": string(hashedPassword),
 	})
 	if err != nil {
 		log.Printf("failed to insert user into database: %v", err)
