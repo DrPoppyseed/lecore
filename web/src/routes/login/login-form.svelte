@@ -8,12 +8,11 @@
   import { superForm, superValidateSync } from "sveltekit-superforms/client";
   import { signInWithCustomToken } from "firebase/auth";
   import { auth } from "$lib/firebase";
-  import { authUser } from "$lib/authStore";
   import { loginSchema, type LoginSchema } from "$lib/schema";
   import { PUBLIC_BACKEND_URI } from "$env/static/public";
+  import LL from "../../i18n/i18n-svelte";
 
   let isLoading: boolean = false;
-  let success: boolean | undefined = undefined;
   let className: string | undefined | null = undefined;
 
   const { form, errors, enhance, constraints, message } = superForm(
@@ -24,12 +23,9 @@
       async onUpdate({ form }) {
         if (form.valid) {
           const token = await createToken(form.data);
-          console.log({ token });
-
           if (token) {
-            await loginWithToken(token);
+            return await loginWithToken(token);
           } else {
-            // todo: error handling
             console.log("token missing");
           }
         }
@@ -61,18 +57,11 @@
 
   async function loginWithToken(token: string) {
     try {
-      const credentials = await signInWithCustomToken(auth, token);
-      $authUser = {
-        uid: credentials.user.uid,
-        email: credentials.user.email || "",
-      };
-
-      goto("/dashboard");
+      await signInWithCustomToken(auth, token);
+      return goto("/dashboard", { replaceState: true });
     } catch (error) {
       // todo: error handling
       console.log(error);
-
-      success = false;
     }
   }
 
@@ -86,7 +75,7 @@
 <form method="POST" use:enhance>
   <div class={cn("grid gap-6", className)} {...$$restProps}>
     <div class="grid gap-2">
-      <Label for="email">Email</Label>
+      <Label for="email">{$LL.register.email}</Label>
       <Input
         id="email"
         type="email"

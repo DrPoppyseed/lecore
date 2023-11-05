@@ -5,9 +5,11 @@ import {
   PUBLIC_FIREBASE_STORAGE_BUCKET,
   PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   PUBLIC_FIREBASE_APP_ID,
+  PUBLIC_USE_FIREBASE_AUTH_EMULATOR,
+  PUBLIC_FIREBASE_AUTH_EMULATOR_URI,
 } from "$env/static/public";
-import { initializeApp, getApps } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { initializeApp, type FirebaseApp } from "firebase/app";
+import { getAuth, type Auth, connectAuthEmulator } from "firebase/auth";
 
 const config = {
   apiKey: PUBLIC_FIREBASE_API_KEY,
@@ -18,12 +20,18 @@ const config = {
   appId: PUBLIC_FIREBASE_APP_ID,
 };
 
-let app;
+let app: FirebaseApp;
+let auth: Auth;
 
-if (!getApps().length) {
-  app = initializeApp(config);
-}
+export const initializeFirebase = () => {
+  if (!app) {
+    app = initializeApp(config);
+    auth = getAuth(app);
 
-const auth = getAuth(app);
+    if (PUBLIC_USE_FIREBASE_AUTH_EMULATOR == "true" || false) {
+      connectAuthEmulator(auth, PUBLIC_FIREBASE_AUTH_EMULATOR_URI);
+    }
+  }
+};
 
 export { app, auth };

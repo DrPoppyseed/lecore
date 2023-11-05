@@ -8,13 +8,10 @@
   import { superForm, superValidateSync } from "sveltekit-superforms/client";
   import { signInWithCustomToken } from "firebase/auth";
   import { auth } from "$lib/firebase";
-  import { authUser } from "$lib/authStore";
   import { loginSchema, type LoginSchema } from "$lib/schema";
   import { PUBLIC_BACKEND_URI } from "$env/static/public";
-  import type { z } from "zod";
 
   let isLoading: boolean = false;
-  let success: boolean | undefined = undefined;
   let className: string | undefined | null = undefined;
 
   const { form, errors, enhance, constraints } = superForm(
@@ -60,18 +57,11 @@
 
   async function loginWithToken(token: string) {
     try {
-      const credentials = await signInWithCustomToken(auth, token);
-      $authUser = {
-        uid: credentials.user.uid,
-        email: credentials.user.email || "",
-      };
-
-      goto("/dashboard");
+      await signInWithCustomToken(auth, token);
+      return goto("/dashboard");
     } catch (error) {
       // todo: error handling
       console.log(error);
-
-      success = false;
     }
   }
 
